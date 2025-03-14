@@ -1,4 +1,5 @@
 import cv2
+import matplotlib.pyplot as plt
 
 class Image_Merger:
     def __init__(self, img_lb, img_bg):
@@ -10,11 +11,45 @@ class Image_Merger:
     def Show_lb(self):
         # Show image label
 
-        cv2.imshow("Label",self.img_lb)
+        img = cv2.cvtColor(self.img_lb, cv2.COLOR_BGR2RGB)
+
+        plt.imshow(img)
+        plt.axis("off")
+        plt.show()
 
     def Show_bg(self):
-        # Show image label
+        # Show image background
 
-        cv2.imshow("Background",elf.img_bg)
+        img = cv2.cvtColor(self.img_bg, cv2.COLOR_BGR2RGB)
 
-print(cv2.__file__)
+        plt.imshow(img)
+        plt.axis("off")
+        plt.show()
+
+    def Resize_lb(self, fx, fy):
+        # Change image
+
+       return cv2.resize(self.img_lb, None, fx = fx, fy = fy)
+    
+    def Size_lb(self):
+
+        return self.img_lb.shape
+
+    def Merge(self, fx, fy, px, py):
+        # merge label to background
+
+        img_resize = self.Resize_lb(fx, fy)
+        h, w, _ = img_resize.shape
+        temp = self.img_bg
+        temp[py:py + h, px:px + w] = img_resize
+
+        return temp
+
+    def ShowMerge(self, fx, fy, px, py):
+ 
+        temp = self.Merge(fx, fy, px, py)
+        temp = cv2.cvtColor(temp, cv2.COLOR_BGR2RGB)
+
+        plt.imshow(temp)
+        plt.axis("off")
+        plt.show()
