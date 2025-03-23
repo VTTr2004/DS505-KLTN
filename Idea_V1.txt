@@ -1,0 +1,44 @@
+Hình ảnh trả về chia ra thành các ô vuông gọi là map
+ _ _ _ … _ _ _
+|_|_|_|…|_|_|_|
+|_|_|_|…|_|_|_|  --> gọi là Map
+…………………………………….
+
+ _
+|_| -> gọi là Checker, trong đó chứa 1 dict:
+{
+   "Street" : <int>
+   "Rotaion" : [angle_begin, angle_end],
+   "Vehicle" : [],
+}
+Chi tiết:
+ + Street để cho biết ở vị trí đó là loại đường gì.
+ + Rotation để cho biết hướng của ô đó.(angle: 0 -> 360, hướng bên phải là 0 độ, theo cos)
+ + Vehicle để cho biết các loại nhãn được phép đi qua.
+
+
+Mỗi nhãn sẽ trả về là 1 Character, 1 character cần 2 frame để tạo thành (DeepSort)
+trong Charactercos:
+{
+   "Vehicle" : <int>,
+   "Rotation" : <angle>,
+   "Distance" : <float>,
+}
+Chi tiết:
+ + Vehicle để cho biết các loại nhãn được phép đi qua.
+ + rotation để cho biết hướng của ô đó.(angle: 0 -> 360, hướng bên phải là 0 độ, theo cos)
+ + distance để cho biết khoảng cách của object ở frame 2 so với frame 1.
+
+THUẬT TOÁN LOGIC CỦA TỪNG LỖI:
+
+-------------------------------------------
+Đi Ngược Chiều
++ Checker["Rotation"] - 100 <= Character["Rotation"] <= Checker["Rotation"] + 100
+
+-------------------------------------------
+Phóng nhanh
++ Character["Distance"] nằm trong khoảng outlier của boxplot của tất cả xe đang tracking
+
+-------------------------------------------
+Lấn làn
++ Character["Vehicle"] not in Checker["Vehicle"]
