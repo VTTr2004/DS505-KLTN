@@ -1,0 +1,7 @@
+Có thể nhận diện được trong 1 frame:
+0 Không đội mũ
+1 Chở trên 3 người
+2 Chở quá tải
+3 Xe máy
+4 Container
+5 Oto con
