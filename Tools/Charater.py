@@ -18,6 +18,8 @@ class Character:
             return [self.x_1, self.y_1]
         if kind == 'p_2':
             return [self.x_2, self.y_2]
+        if kind == 'vehicle':
+            return self.vehicle
         if kind == 'rotation':
             return Def_common.Cal_Angle(self.x_1, self.y_1, self.x_2, self.y_2)
         if kind == 'distance':

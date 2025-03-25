@@ -5,3 +5,9 @@ Có thể nhận diện được trong 1 frame:
 3 Xe máy
 4 Container
 5 Oto con
+
+
+Checker
+0 - wrong lane
+1 - wrong rotation
+2 - over speed

@@ -37,3 +37,12 @@ def Check_Angle(angle, code):
         result = [result[0] - 45, result[1] + 45]
     
     return True if result[0] <= angle and angle <= result[1] else False
+
+def Get_Q1Q3(speed_list):
+    #
+
+    temp = np.array(speed_list)
+    Q1 = np.percentile(temp, 25)
+    Q3 = np.percentile(temp, 75)
+
+    return [Q1, Q3]
