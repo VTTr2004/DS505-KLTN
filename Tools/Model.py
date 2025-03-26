@@ -7,7 +7,7 @@ class Model:
     def Predict(self, img_ip):
         # Detect object
 
-        ip_deepsort = [] # [x, y, w, h, confidence, class_id]
+        ip_deepsort = [] # [x_min, y_min, x_max, y_max, confidence, class_id]
 
         results = self.model.predict(img_ip, save = False)
         for result in results:  
@@ -17,6 +17,6 @@ class Model:
                 conf = float(box.conf[0].cpu().numpy())
                 cls_id = int(box.cls[0].cpu().numpy())
                 
-                ip_deepsort.append([x1, y1, x2 - x1, y2 - y1, conf, cls_id])
+                ip_deepsort.append([x1, y1, x2, y2, conf, cls_id])
 
         return ip_deepsort

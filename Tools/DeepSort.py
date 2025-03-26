@@ -11,9 +11,9 @@ class Track_Tool:
     def Update(self, ip_deepsort, frame):
         # tracking and return track_list
 
-        self.tracks = self.model.update_tracks(ip_deepsort, frame = frame)
+        temp = self.model.update_tracks(ip_deepsort, frame = frame)
 
-        return self.tracks
+        return temp
 
     def Get_TrackClass(self):
         # return track_class
