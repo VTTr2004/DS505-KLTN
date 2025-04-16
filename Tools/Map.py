@@ -26,12 +26,18 @@ class Map:
             self.Color_Feature = 0 # Use HSV
             self.Box = [-1, -1, -1, -1] # [x, y, h, w]
 
+            self.Lost = 0
             self.Px_Py_Before = [-1., -1.] # [X, Y]
             self.Speed = 0.
             self.Angle = 0.
 
         def GetID(self):
             return self.Class_ID
+        
+        def CheckLost(self, num):
+            if self.Lost >= num:
+                return False
+            return True
 
         def GetAngel(self):
             # Get angle create by char and Ox (-)
@@ -59,42 +65,33 @@ class Map:
             self.Box = data[2]
 
         def CheckMotion(self, box, ratio):
-            # box is being dataframe
+            # box is being Series for each is [x, y, h, w]
 
             x_min = self.Box[0] - self.Box[2] / 2
             y_min = self.Box[1] - self.Box[3] / 2
             x_max = self.Box[0] + self.Box[2] / 2
             y_max = self.Box[1] + self.Box[3] / 2
-            box_1 = [x_min, y_min, x_max, y_max]
+            box_1 = np.array([x_min, y_min, x_max, y_max])
+            area_box_1 = self.Box[2] * self.Box[3]
             
             # box
-            box['x_min'] = box[0] - box[2] / 2
-            y_min = box[1] - box[3] / 2
-            x_max = box[0] + box[2] / 2
-            y_max = box[1] + box[3] / 2
-            box_2 = [x_min, y_min, x_max, y_max]
+            box = np.array(box.values.tolist()).reshape(-1, 4)
+            box = pd.DataFrame(box, columns = ['x', 'y', 'h', 'w'])
 
-            area_box_1 = self.Box[2] * self.Box[3]
-            area_box_2 = box[2] * box[3]
+            box['x_min'] = (box['x'] - box['h'] / 2).clip(lower=box_1[0])
+            box['y_min'] = (box['y'] - box['w'] / 2).clip(lower=box_1[1])
+            box['x_max'] = (box['x'] + box['h'] / 2).clip(upper=box_1[2])
+            box['y_max'] = (box['y'] + box['w'] / 2).clip(upper=box_1[3])
 
-            # area match
-            inter_x_min = max(box_1[0], box_2[0])
-            inter_y_min = max(box_1[1], box_2[1])
-            inter_x_max = min(box_1[2], box_2[2])
-            inter_y_max = min(box_1[3], box_2[3])
+            box['area'] = box['h'] * box['w']
+            box['inter_h'] = (box['x_max'] - box['x_min']).clip(lower=0)
+            box['inter_w'] = (box['y_max'] - box['y_min']).clip(lower=0)
 
-            inter_w = max(0, inter_x_max - inter_x_min)
-            inter_h = max(0, inter_y_max - inter_y_min)
-            area_match = inter_w * inter_h
-
-            try:
-                IOU = area_match / (area_box_1 + area_box_2 - area_match)
-            except:
-                IOU = 0.
-            
-            if IOU <= ratio:
-                return True
-            return False
+            area_match = (box['inter_w'] * box['inter_h']).values
+            area_total = box['area'].values + area_box_1 - area_match
+            IOU = area_match / area_total
+                    
+            return [i >= ratio for i in IOU]
 
         def CheckColorFeature(self, data, ratio, return_score = False):
             vec1 = np.array(self.Color_Feature)
@@ -115,29 +112,35 @@ class Map:
             datas = pd.DataFrame(datas, columns = ['class_ID', 'color_feature', 'box'])
 
             ID_check = np.array(datas['class_ID'] == self.Class_ID)
-            Motion_Check = np.array(self.CheckMotion(datas['box'].tolist(), 0.9))
-            Color_check = np.array(self.CheckColorFeature(datas['color_feature'], 0.9))
+            Motion_Check = np.array(self.CheckMotion(datas['box'], 0.9))
+            Color_check = np.array(self.CheckColorFeature(datas['color_feature'].tolist(), 0.9))
 
             final_mask = ID_check & Motion_Check & Color_check 
 
-            char_true = datas[final_mask]
-            char_false = datas[~final_mask]
+            char_true = datas[final_mask].reset_index(drop=True)
+            char_false = datas[~final_mask].reset_index(drop=True)
+
+            if char_true.shape[0] == 0:
+                self.Lost += 1
+                return char_false.values
         
             if char_true.shape[0] >= 2:
                 # Choose Char_true
                 temp = char_true.apply(lambda row: self.CheckColorFeature(row['color_feature'], 0.95, return_score = True), axis=1)
-                max = np.argmax(temp, axis = 0)
+                max = np.argmax(temp)
+                temp = char_true[~char_true.index.isin([max])]
                 char_true = char_true.iloc[max]
-                temp = datas[~datas.index.isin([max])]
                 char_false = pd.concat([char_false, temp], ignore_index = True)
             if char_true.shape[0] == 1:
                 # Is ID
+                self.Lost = 0
                 self.Px_Py_Before = [self.Box[0], self.Box[1]]
                 self.Box = char_true[['x', 'y', 'h', 'w']].values.tolist()[0]
                 self.Color_Feature = char_true['color_feature'].values[0]
                 self.Speed = 0. # process later
                 self.Angle = 0. # process later
-            return char_false
+            
+            return char_false.values
         
 
     class Checker:
@@ -266,7 +269,7 @@ class Map:
         self.List_Char = {} # is dict
 
         # Checker = [Active, Kind, List_Vehicle, AngleBgEd]
-        self.List_Checker = [[[False, -1, [], []]  for _ in range(row)] for _ in range(col)]
+        self.List_Checker = np.array([[[False, -1, [], []]  for _ in range(row)] for _ in range(col)])
         
 
         self.Char = Map.Character()
@@ -285,21 +288,17 @@ class Map:
             return
 
         chars = np.array(chars)
-        if len(self.List_Char.keys) == 0:
-            for char in chars:
-                self.List_Char[Map.i] = char
-                Map.i += 1
-        else:
-            for k in self.List_Char.keys:
-                pass
+        for k in self.List_Char.keys:
+            self.Char.Read_Char(self.List_Char[k])
+            if self.Char.CheckLost(30):
+                chars = self.Char.IsChar(chars)
+            else:
+                del self.List_Char[k]
+        for char in chars:
+            self.List_Char[Map.i] = char
+            Map.i += 1
 
-
+        
 
         return
     
-
-# temp = datas[~datas.index.isin(char_true.index)]
-# char_false = pd.concat([char_false, temp], ignore_index = True)
-# temp = datas[~datas.index.isin(char_true.index)]
-# char_false = pd.concat([char_false, temp], ignore_index = True)
-# char_false = datas.loc[datas['class_ID'] != self.Class_ID]
