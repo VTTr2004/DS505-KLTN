@@ -112,8 +112,8 @@ class Map:
             datas = pd.DataFrame(datas, columns = ['class_ID', 'color_feature', 'box'])
 
             ID_check = np.array(datas['class_ID'] == self.Class_ID)
-            Motion_Check = np.array(self.CheckMotion(datas['box'], 0.9))
-            Color_check = np.array(self.CheckColorFeature(datas['color_feature'].tolist(), 0.9))
+            Motion_Check = np.array(self.CheckMotion(datas['box'], 0.7))
+            Color_check = np.array(self.CheckColorFeature(datas['color_feature'].tolist(), 0.7))
 
             final_mask = ID_check & Motion_Check & Color_check 
 
@@ -126,7 +126,7 @@ class Map:
         
             if char_true.shape[0] >= 2:
                 # Choose Char_true
-                temp = char_true.apply(lambda row: self.CheckColorFeature(row['color_feature'], 0.95, return_score = True), axis=1)
+                temp = char_true.apply(lambda row: self.CheckColorFeature(row['color_feature'], 0.7, return_score = True), axis=1)
                 max = np.argmax(temp)
                 temp = char_true[~char_true.index.isin([max])]
                 char_true = char_true.iloc[max]
@@ -269,9 +269,13 @@ class Map:
         self.List_Char = {} # is dict
 
         # Checker = [Active, Kind, List_Vehicle, AngleBgEd]
-        self.List_Checker = np.array([[[False, -1, [], []]  for _ in range(row)] for _ in range(col)])
+        self.List_Checker = np.array([[[False, -1, [], []]  for _ in range(col)] for _ in range(row)])
         
-
+        # contanst
+        self.h_img = -1
+        self.w_img = -1
+        self.col = col
+        self.row = row
         self.Char = Map.Character()
         self.Check = Map.Checker()
 
@@ -281,6 +285,11 @@ class Map:
 
     def Light_On(self):
         self.Traffict_Light = True
+
+    def Get_ID_Check(self, char):
+        # point_before = char.
+        pass
+
 
     def UpdateData(self, chars):
         # char = [class_ID, color_feature, box]
@@ -297,6 +306,13 @@ class Map:
         for char in chars:
             self.List_Char[Map.i] = char
             Map.i += 1
+
+        if self.Img_ID % 30 != 0:
+            return
+        
+        # self.Active = False
+        if ~self.Active:
+            pass
 
         
 
