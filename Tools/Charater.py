@@ -7,17 +7,12 @@ class Character:
     def __init__(self):
         self.Class_ID = -1
         self.Color_Feature = 0 # Use HSV
-        self.Box = [-1, -1, -1, -1] # [x, y, h, w]
+        self.Box = [-1, -1, -1, -1] # [x, y, w, h]
+
+        self.Px_Py_Before = [-1., -1.] # [X, Y]
 
         self.Lost = 0
-        self.Px_Py_Before = [-1., -1.] # [X, Y]
-        self.Speed = 0.
-        self.Angle = 0.
-
         self.List_error = []
-
-    def ReadError(self, er):
-        self.List_error = er
 
     def GetMatrix(self, row, col):
         box_1 = self.Px_Py_Before + self.Box[2:]
@@ -67,16 +62,32 @@ class Character:
             
         return ratio
 
+    def GetData(self):
+        class_id = self.Class_ID
+        color = self.Color_Feature
+        box = self.Box
+        lost = self.Lost
+        Px_Py = self.Px_Py_Before
+        errors = self.List_error
+
+        return [class_id, color, box, lost, Px_Py, errors]
+
     def Read_Char(self, data):
         self.Class_ID = data[0]
         self.Color_Feature = data[1]
         self.Box = data[2]
+        try:
+            self.Lost = data[3]
+            self.Px_Py_Before = data[4]
+            self.List_error = data[5]
+        except:
+            pass
 
-    def GetData(self):
+    def GetInfor(self):
         return [0, [self.Class_ID - 3], [self.GetAngle]]
 
     def CheckMotion(self, box, ratio):
-        # box is being Series for each is [x, y, h, w]
+        # box is being Series for each is [x, y, w, h]
 
         x_min = self.Box[0] - self.Box[2] / 2
         y_min = self.Box[1] - self.Box[3] / 2
@@ -87,12 +98,12 @@ class Character:
         
         # box
         box = np.array(box.values.tolist()).reshape(-1, 4)
-        box = pd.DataFrame(box, columns = ['x', 'y', 'h', 'w'])
+        box = pd.DataFrame(box, columns = ['x', 'y', 'w', 'h'])
 
-        box['x_min'] = (box['x'] - box['h'] / 2).clip(lower=box_1[0])
-        box['y_min'] = (box['y'] - box['w'] / 2).clip(lower=box_1[1])
-        box['x_max'] = (box['x'] + box['h'] / 2).clip(upper=box_1[2])
-        box['y_max'] = (box['y'] + box['w'] / 2).clip(upper=box_1[3])
+        box['x_min'] = (box['x'] - box['w'] / 2).clip(lower=box_1[0])
+        box['y_min'] = (box['y'] - box['h'] / 2).clip(lower=box_1[1])
+        box['x_max'] = (box['x'] + box['w'] / 2).clip(upper=box_1[2])
+        box['y_max'] = (box['y'] + box['h'] / 2).clip(upper=box_1[3])
 
         box['area'] = box['h'] * box['w']
         box['inter_h'] = (box['x_max'] - box['x_min']).clip(lower=0)
@@ -115,12 +126,11 @@ class Character:
         if return_score:
             temp = np.where(norm1 * norm2 != 0, dot / (norm1 * norm2), 0)
             return temp
-        return np.where(norm1 * norm2 != 0, dot / (norm1 * norm2) >= ratio, False)
-        
+        return np.where(norm1 * norm2 != 0, dot / (norm1 * norm2) >= ratio, False)      
 
     def IsChar(self, datas):
         # data = [class_ID, color_feature, box]
-        datas = pd.DataFrame(datas, columns = ['class_ID', 'color_feature', 'box'])
+        datas = pd.DataFrame(datas)
 
         ID_check = np.array(datas['class_ID'] == self.Class_ID)
         Motion_Check = np.array(self.CheckMotion(datas['box'], 0.7))
@@ -137,18 +147,16 @@ class Character:
     
         if char_true.shape[0] >= 2:
             # Choose Char_true
-            temp = char_true.apply(lambda row: self.CheckColorFeature(row['color_feature'], 0.7, return_score = True), axis=1)
+            temp = np.array(self.CheckColorFeature(char_true['color_feature'].tolist(), 0.7))
             max = np.argmax(temp)
             temp = char_true[~char_true.index.isin([max])]
             char_true = char_true.iloc[max]
             char_false = pd.concat([char_false, temp], ignore_index = True)
         if char_true.shape[0] == 1:
             # Is ID
-            self.Lost = 0
-            self.Px_Py_Before = [self.Box[0], self.Box[1]]
-            self.Box = char_true[['x', 'y', 'h', 'w']].values.tolist()[0]
             self.Color_Feature = char_true['color_feature'].values[0]
-            self.Speed = 0. # process later
-            self.Angle = 0. # process later
+            self.Box = char_true[['x', 'y', 'w', 'h']].values.tolist()[0]
+
+            self.Px_Py_Before = [self.Box[0], self.Box[1]]
         
         return char_false.values

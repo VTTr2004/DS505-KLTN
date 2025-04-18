@@ -29,8 +29,6 @@ class Check:
 
 class Map:
 
-    i = 0
-
     lb_dict = {
         0 : 'den do',
         1 : 'den xanh',
@@ -43,20 +41,18 @@ class Map:
         8 : 'Xe khach'
     }
 
-    def __init__(self, h_img, w_img, col, row, char, checker):
+    def __init__(self, col, row, char, checker):
+        self.i = 0
         self.Active = False
         self.Traffict_Light = False
-        self.Img_Now = None # is a numpy array
         self.Img_ID = 0
 
         # Char = [class_ID, color_feature, box]
-        self.List_Char = {} # is dict
+        self.Dict_char = {}
 
         self.List_Checker = np.array([[Check()  for _ in range(col)] for _ in range(row)])
         
         # contanst
-        self.h_img = h_img
-        self.w_img = w_img
         self.col = col
         self.row = row
         self.Char = char
@@ -69,28 +65,30 @@ class Map:
     def Light_On(self):
         self.Traffict_Light = True
 
-    def UpdateData(self, chars):
-        # char = [class_ID, color_feature, box]
+    def UpdateData(self, chars, amount_ID = 150):
+        # char = {class_ID, colorfeature, box}
         if len(chars) == 0:
             return
 
-        chars = np.array(chars)
-        for k in self.List_Char.keys:
-            self.Char.Read_Char(self.List_Char[k])
+        # chars = np.array(chars)
+        for k in self.Dict_char.keys():
+            self.Char.Read_Char(self.Dict_char[k])
             if self.Char.CheckLost(30):
                 chars = self.Char.IsChar(chars)
+                self.Dict_char[k] = self.Char.GetData()
             else:
-                del self.List_Char[k]
+                del self.Dict_char[k]
         for char in chars:
-            self.List_Char[Map.i] = char
-            Map.i += 1
+            self.Dict_char[self.i] = char
+            self.i += 1
 
         if self.Img_ID % 30 != 0:
             return
         
-        # self.Active = False
+        if self.i >= amount_ID:
+            self.Active = True
         if ~self.Active:
-            for char in self.List_Char:
+            for char in self.Dict_char.values():
                 self.Char.Read_Char(char)
                 box = self.Char.GetMatrix(self.row, self.col)
                 check_temp = Check(*[False] + self.GetData())
@@ -98,11 +96,14 @@ class Map:
                 self.List_Checker[box[1][0]:box[1][1], box[1][2]:box[1][3]] += check_temp
             return 
 
-        for char in self.List_Char:
-            self.Char.Read_Char(char)
+        for k in self.Dict_char.keys():
+            self.Char.Read_Char(self.Dict_char[k])
             address = self.Char.GetIDChecker()
-            list_error = self.List_Checker[address[0], address[1]].CheckError(char)
+            list_error = self.List_Checker[address[0], address[1]].CheckError(self.Char)
             self.Char.ReadError(list_error)
-
+            self.Dict_char[k] = self.Char.GetData()
         return
     
+    def GetListChar(self):
+        # char = [class_id, color_feature, box, lost, Px_Py, errors]
+        return self.Dict_char

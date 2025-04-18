@@ -99,7 +99,7 @@ class Checker:
 
     def WrongLane(self, char):
         # ID Fail : 1
-        char_lb = char.GetID()
+        char_lb = char.GetClassID()
 
         # People #
         if self.lb_dict[char_lb] == 'nguoi di bo':
