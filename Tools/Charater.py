@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import math 
 
+
 class Character:
     # Process Object #
     def __init__(self):
@@ -14,20 +15,25 @@ class Character:
         self.Lost = 0
         self.List_error = []
 
+    def Check_Active(self):
+        if self.Px_Py_Before != [-1., -1.]:
+            return True
+        return False
+
     def GetMatrix(self, row, col):
         box_1 = self.Px_Py_Before + self.Box[2:]
-        x_min = (box_1[0] - box_1[2]) * row
-        x_max = (box_1[0] + box_1[2]) * row
-        y_min = (box_1[1] - box_1[3]) * col
-        y_max = (box_1[1] + box_1[3]) * col
-        box_1 = [x_min, x_max, y_min, y_max]
+        x_min = (box_1[0] - box_1[2] / 2) * row
+        x_max = (box_1[0] + box_1[2] / 2) * row
+        y_min = (box_1[1] - box_1[3] / 2) * col
+        y_max = (box_1[1] + box_1[3] / 2) * col
+        box_1 = list(map(int, [x_min, x_max, y_min, y_max]))
         
         box_2 = self.Box
-        x_min = (box_2[0] - box_2[2]) * row
-        x_max = (box_2[0] + box_2[2]) * row
-        y_min = (box_2[1] - box_2[3]) * col
-        y_max = (box_2[1] + box_2[3]) * col
-        box_2 = [x_min, x_max, y_min, y_max]
+        x_min = (box_2[0] - box_2[2] / 2) * row
+        x_max = (box_2[0] + box_2[2] / 2) * row
+        y_min = (box_2[1] - box_2[3] / 2) * col
+        y_max = (box_2[1] + box_2[3] / 2) * col
+        box_2 = list(map(int, [x_min, x_max, y_min, y_max]))
 
         return [box_1, box_2]
 
@@ -62,7 +68,7 @@ class Character:
             
         return ratio
 
-    def GetData(self):
+    def GetData(self, ForCheck = True):
         class_id = self.Class_ID
         color = self.Color_Feature
         box = self.Box
@@ -70,6 +76,8 @@ class Character:
         Px_Py = self.Px_Py_Before
         errors = self.List_error
 
+        if ForCheck:
+            return [class_id, color, box]
         return [class_id, color, box, lost, Px_Py, errors]
 
     def Read_Char(self, data):
@@ -128,15 +136,31 @@ class Character:
             return temp
         return np.where(norm1 * norm2 != 0, dot / (norm1 * norm2) >= ratio, False)      
 
-    def IsChar(self, datas):
+    def IsChar(self, datas, img_id):
         # data = [class_ID, color_feature, box]
-        datas = pd.DataFrame(datas)
+        if len(datas) == 0:
+            return datas
+        
+        class_ids = []
+        boxes = []
+        color_features = []
 
+        for d in datas:
+            class_ids.append(d[0])
+            color_features.append(d[1])
+            boxes.append(d[2])
+
+        datas = pd.DataFrame({
+            'class_ID': class_ids,
+            'color_feature': color_features,
+            'box': boxes
+        })
+        ratio = 0.7
         ID_check = np.array(datas['class_ID'] == self.Class_ID)
-        Motion_Check = np.array(self.CheckMotion(datas['box'], 0.7))
-        Color_check = np.array(self.CheckColorFeature(datas['color_feature'].tolist(), 0.7))
-
-        final_mask = ID_check & Motion_Check & Color_check 
+        Color_check = np.array(self.CheckColorFeature(datas['color_feature'].tolist(), ratio))
+        # Motion_Check = np.array(self.CheckMotion(datas['box'], ratio))
+        
+        final_mask = ID_check & Color_check 
 
         char_true = datas[final_mask].reset_index(drop=True)
         char_false = datas[~final_mask].reset_index(drop=True)
@@ -147,16 +171,16 @@ class Character:
     
         if char_true.shape[0] >= 2:
             # Choose Char_true
-            temp = np.array(self.CheckColorFeature(char_true['color_feature'].tolist(), 0.7))
+            temp = np.array(self.CheckColorFeature(char_true['color_feature'].tolist(), ratio, return_score = True))
             max = np.argmax(temp)
             temp = char_true[~char_true.index.isin([max])]
             char_true = char_true.iloc[max]
             char_false = pd.concat([char_false, temp], ignore_index = True)
         if char_true.shape[0] == 1:
             # Is ID
-            self.Color_Feature = char_true['color_feature'].values[0]
-            self.Box = char_true[['x', 'y', 'w', 'h']].values.tolist()[0]
-
-            self.Px_Py_Before = [self.Box[0], self.Box[1]]
+            self.Color_Feature = char_true['color_feature'].tolist()[0]
+            self.Box = char_true['box'].tolist()[0]
+            if img_id % 30 == 0:
+                self.Px_Py_Before = [self.Box[0], self.Box[1]]
         
         return char_false.values

@@ -29,19 +29,28 @@ class Draw:
         x_2 = data[0] + data[2] / 2
         y_2 = data[1] + data[3] / 2
 
-        return [x_1, y_1, x_2, y_2]
+        return list(map(int, [x_1, y_1, x_2, y_2]))
+    
+    def DrawFromModel(self, img, results):
+        for r in results[0].boxes:
+            x_1, y_1, x_2, y_2 = map(int, r.xyxy[0])
+            cv2.rectangle(img, (x_1, y_1), (x_2, y_2), color = (0, 255, 0), thickness=2)
 
-    def Draw(self, img, chars_dict):
+        return img   
+
+    def DrawFromMap(self, img, chars_dict):
         for k in chars_dict.keys():
             # [class_id, color_feature, box, lost, Px_Py, errors]
             data = chars_dict[k]
+            if data[3] > 0:
+                continue
             cls_id = data[0]
             box = self.Convertxyxy(data[2])
             len_error = len(data[-1])
 
             name = f'{Draw.lb_dict.get(cls_id, -1)} - {k}'
 
-            cv2.rectangle(img, (box[0], box[1]), (box[2], box[1]), color = Draw.color.get(len_error, (0, 255, 0)), thickness=2)
+            cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), color = Draw.color.get(len_error, (0, 255, 0)), thickness=2)
             cv2.putText(img, name, (box[0], box[1] - 10),
             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
