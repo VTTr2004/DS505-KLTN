@@ -24,7 +24,7 @@ conv_OP = ProOP()
 charer = Character()
 checker = Checker()
 mapper = Map(128, 128, charer, checker)
-drawer = Draw()
+drawer = Draw() 
 
 # frame = cv2.imread('./Tools/img_1.jpg')
 # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
