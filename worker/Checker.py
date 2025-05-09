@@ -1,3 +1,5 @@
+import numpy as np
+
 class Checker:
 
   lb_dict = {

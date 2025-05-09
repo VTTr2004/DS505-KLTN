@@ -2,16 +2,6 @@ import pandas as pd
 import numpy as np
 import math
 
-from dataclasses import dataclass, field
-from typing import List
-
-@dataclass
-class Map_Infor:
-  img_id: int = 0
-  map: List[List[List[List]]] = field(default_factory=lambda: [[[[], []] for _ in range(64)] for _ in range(64)])
-  chars: List[List[int]] = field(default_factory = [[]])
-
-
 class Map:
   lb_dict = {
       3 : 'nguoi di bo',
@@ -22,11 +12,11 @@ class Map:
       8 : 'Xe khach'
   }
 
-  def __init__(self) -> None:
+  def __init__(self, checker, character) -> None:
     self.map_path = None
-    self.check_reader = Checker()
-    self.char_reader = Character()
-    self.cam = Map_Infor()
+    self.check_reader = checker
+    self.char_reader = character
+    self.cam = None
 
   def Load_Map(self, map_path: str) -> None:
     self.map_path = map_path
@@ -117,6 +107,7 @@ class Map:
     return result
 
   def Run(self, input: list) -> None:
+    self.cam.img_id += 1
     if len(input) == 0:
       return
 
@@ -129,6 +120,7 @@ class Map:
 
     self.Re_Infor(chars, input)
 
-    if self.Active():
+    if self.Active() and self.cam.img_id % 10 == 0:
       return self.Active_True
     self.Active_False
+    return []

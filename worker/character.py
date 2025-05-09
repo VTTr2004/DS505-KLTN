@@ -1,3 +1,5 @@
+import numpy as np
+
 class Character:
   def __init__(self) -> None:
     self.cls_id = -1
