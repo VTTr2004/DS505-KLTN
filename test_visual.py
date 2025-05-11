@@ -1,30 +1,59 @@
+from PIL import Image, ImageTk
 import tkinter as tk
-from tkinter import filedialog
-from PIL import ImageTk, Image
+from pages.page1 import Page1
+from pages.page2 import Page2
+from pages.page3 import Page3
 
-def upload_video():
-    path = filedialog.askopenfilename(filetypes=[("Video files", "*.mp4 *.avi")])
-    status_label.config(text=f"Video đã chọn: {path}")
+class MainApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Chia bố cục theo tỷ lệ")
+        self.geometry("1000x650")
 
-root = tk.Tk()
-root.title("Ứng dụng xử lý video")
-root.geometry("800x600")
+        self.init_menu()
 
-# Phần đầu – chọn file
-top_frame = tk.Frame(root, height=100, bg="lightgray")
-top_frame.pack(fill="x")
-upload_btn = tk.Button(top_frame, text="Chọn video", command=upload_video)
-upload_btn.pack(pady=20)
+        self.grid_columnconfigure(0, weight=3)  # 30%
+        self.grid_columnconfigure(1, weight=7)  # 70%
+        self.grid_rowconfigure(0, weight=1)
 
-# Phần giữa – hiển thị trạng thái
-middle_frame = tk.Frame(root, height=250, bg="white")
-middle_frame.pack(fill="x")
-status_label = tk.Label(middle_frame, text="Chưa chọn video", fg="blue")
-status_label.pack(pady=50)
+        # Vùng trang (trái)
+        left_frame = tk.Frame(self, bg="lightgray")
+        left_frame.grid(row=0, column=0, sticky="nsew")
+        left_frame.grid_rowconfigure(0, weight=1)
+        left_frame.grid_columnconfigure(0, weight=1)
 
-# Phần cuối – hiển thị ảnh
-bottom_frame = tk.Frame(root, bg="lightblue")
-bottom_frame.pack(fill="both", expand=True)
-# Ở đây bạn có thể dùng Label + ImageTk.PhotoImage để hiện ảnh xử lý
+        self.frames = {}
+        for F in (Page1, Page2, Page3):
+            page_name = F.__name__
+            frame = F(parent=left_frame, controller=self)
+            self.frames[page_name] = frame
+            frame.grid(row=0, column=0, sticky="nsew")
+        self.show_frame("Page1")
 
-root.mainloop()
+        # Vùng ảnh (phải)
+        right_frame = tk.Frame(self, bg="white")
+        right_frame.grid(row=0, column=1, sticky="nsew")
+
+        # Hiển thị ảnh
+        image = Image.open("./MaiChiTho_cam_1_7.jpg")
+        # image = image.resize((700, 500))
+        self.tk_image = ImageTk.PhotoImage(image)
+        img_label = tk.Label(right_frame, image=self.tk_image)
+        img_label.pack(pady=10)
+        img_label = tk.Label(right_frame, image=self.tk_image)
+        img_label.pack(pady=0)
+
+    def init_menu(self):
+        menubar = tk.Menu(self)
+        self.config(menu=menubar)
+        menubar.add_command(label="Trang 1", command=lambda: self.show_frame("Page1"))
+        menubar.add_command(label="Trang 2", command=lambda: self.show_frame("Page2"))
+        menubar.add_command(label="Trang 3", command=lambda: self.show_frame("Page3"))
+
+    def show_frame(self, page_name):
+        frame = self.frames[page_name]
+        frame.tkraise()
+
+if __name__ == "__main__":
+    app = MainApp()
+    app.mainloop()

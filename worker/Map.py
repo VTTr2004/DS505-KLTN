@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import math
+import pickle
+from scipy.optimize import linear_sum_assignment
 
 class Map:
   lb_dict = {
@@ -53,7 +55,7 @@ class Map:
 
     old_ind, new_ind = linear_sum_assignment(matrix_padded)
     result = [[], []]
-    for i, j in zip(row_ind, col_ind):
+    for i, j in zip(old_ind, new_ind):
       if i < size_old and j < size_new:
         result[0].append(i)
         result[1].append(j)

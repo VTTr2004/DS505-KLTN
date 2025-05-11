@@ -19,24 +19,26 @@ spark_reader = spark.readStream\
 
 from pyspark.sql.functions import pandas_udf
 from pyspark.sql.types import StringType
-from PIL import Image
 from ultralytics import YOLO
 from kafka import KafkaProducer
 
 import pandas as pd
 import numpy as np
 import base64
-import json
 import pickle
 import cv2
-import io
 
-model = YOLO("./model/final.pt")
-producer = KafkaProducer(bootstrap_servers='localhost:9093')
+model = None
+producer = None
 
 @pandas_udf(StringType())
 def detect_with_yolo_udf(image_data: pd.Series) -> pd.Series:
     results = []
+    global model, producer
+    if model is None:
+        model = YOLO("./model/final.pt")
+    if producer is None:
+        producer = KafkaProducer(bootstrap_servers='localhost:9092')
 
     def Extract_Color(img_hsv: np.ndarray, box) -> list:
         h = np.mean(img_hsv[box[0]:box[2],box[1]:box[3],0])
@@ -60,8 +62,9 @@ def detect_with_yolo_udf(image_data: pd.Series) -> pd.Series:
             results.extends([data, temp])
         except:
             print('Khong co anh')
- 
-    producer.send("Chars", value = pickle.dumps(results))
+    if results:
+        producer.send("Chars", value = pickle.dumps(results))
+        producer.flush()
 
     return image_data
 

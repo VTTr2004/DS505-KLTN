@@ -10,11 +10,11 @@ class Checker:
       7 : 'Xe cho hang nho',
       8 : 'Xe khach'
   }
-  def __init__(self) -> None:
+  def __init__(self, charer) -> None:
     self.angle = [0, 0]
     self.vehicle = []
-    self.char_reader = Character()
-
+    self.char_reader = charer
+    
   def Read_Checker(self, check: list) -> None:
     self.angle = check[:2]
     self.vehicle = check[2:]

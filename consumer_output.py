@@ -8,15 +8,15 @@ import json
 import pickle
 import numpy as np
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Kafka Consumer File Parser")
-    parser.add_argument('--port', required=True, help='Kafka bootstrap server port (e.g., 9092)')
-    parser.add_argument('--topic', required=True, help='Kafka topic name')
-    return parser.parse_args()
+# def parse_args():
+#     parser = argparse.ArgumentParser(description="Kafka Consumer File Parser")
+#     parser.add_argument('--port', required=True, help='Kafka bootstrap server port (e.g., 9092)')
+#     parser.add_argument('--topic', required=True, help='Kafka topic name')
+#     return parser.parse_args()
 
 #-------------------------------------------------------------------------------#
 
-def main(topic, port):
+def main(topic = 'chars', port = 9092):
 
     consumer = KafkaConsumer(
         topic,
@@ -33,10 +33,12 @@ def main(topic, port):
             cam = d[0]['cam']
             img = d[0]['data']
             chars = d[1]
-            manager.run(cam, chars)
+            # manager.run(cam, chars)
+            print(cam)
 
 
 
 if __name__ == '__main__':
-    arg = parse_args()
-    main(arg.topic, arg.port)
+    # arg = parse_args()
+    # main(arg.topic, arg.port)
+    main()
