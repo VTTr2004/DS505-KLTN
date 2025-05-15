@@ -13,7 +13,7 @@ from Tools.Process_OutPut import ProOP
 from Tools.Charater import Character
 from Tools.Checker import Checker
 from Tools.Map import Map
-from Tools.Draw import Draw
+from worker.drawer import Draw
 
 
 

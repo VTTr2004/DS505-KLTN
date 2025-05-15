@@ -16,25 +16,23 @@ import numpy as np
 
 #-------------------------------------------------------------------------------#
 
-def main(topic = 'chars', port = 9092):
+def main(topic = 'check_error', port = 9092):
 
     consumer = KafkaConsumer(
         topic,
         bootstrap_servers=f'localhost:{port}',
-        auto_offset_reset='earliest',
+        auto_offset_reset='latest',
         group_id='video-group'
     )
 
     manager = Manager()
 
     for message in consumer:
-        data = pickle.loads(message.value.decode('utf-8'))
-        for d in data:
-            cam = d[0]['cam']
-            img = d[0]['data']
-            chars = d[1]
-            # manager.run(cam, chars)
-            print(cam)
+        raw = message.value.decode('utf-8') 
+        data = json.loads(raw)
+        print(data['cam_list'])
+        print(data['img_list'])
+        print(data['results']) 
 
 
 

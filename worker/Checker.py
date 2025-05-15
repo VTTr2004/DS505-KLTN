@@ -1,4 +1,5 @@
 import numpy as np
+from worker.character import Character
 
 class Checker:
 
@@ -10,10 +11,10 @@ class Checker:
       7 : 'Xe cho hang nho',
       8 : 'Xe khach'
   }
-  def __init__(self, charer) -> None:
+  def __init__(self) -> None:
     self.angle = [0, 0]
     self.vehicle = []
-    self.char_reader = charer
+    self.char_reader = Character()
     
   def Read_Checker(self, check: list) -> None:
     self.angle = check[:2]
@@ -74,11 +75,11 @@ class Checker:
 
   def Checker_Error(self, char: list) -> list:
     self.char_reader.Read_Char(char)
-    result = []
 
     if self.Wrong_Lane():
-      result.add(0)
+      # result.add(0)
+      return True
     if self.Wrong_trend():
-      result.add(1)
-
-    return result
+      # result.add(1)
+      return True
+    return False

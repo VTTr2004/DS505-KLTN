@@ -3,6 +3,9 @@ import numpy as np
 import math
 import pickle
 from scipy.optimize import linear_sum_assignment
+from worker.character import Character
+from worker.checker import Checker
+from worker.drawer import Draw
 
 class Map:
   lb_dict = {
@@ -14,10 +17,10 @@ class Map:
       8 : 'Xe khach'
   }
 
-  def __init__(self, checker, character) -> None:
+  def __init__(self) -> None:
     self.map_path = None
-    self.check_reader = checker
-    self.char_reader = character
+    self.check_reader = Checker()
+    self.char_reader = Character()
     self.cam = None
 
   def Load_Map(self, map_path: str) -> None:
@@ -95,18 +98,20 @@ class Map:
     if self.cam.img_id >= 1500:
       self.cam.map = [[self.check_reader.Create_Angle(val[0]) + self.char_reader.Creat_Vehicle(val[1])
                        for val in col]
-                       for col in self.cam]
+                       for col in self.cam.map]
 
   def Active_True(self):
     chars = np.array(self.cam.chars)
-    chars = chars[chars[:, -1] == 1]
-    result = []
+    # chars = chars[chars[:, -1] == 1]
+    # result = []
     for char in chars:
       check_x, check_y = self.Get_ID_Check
       self.check_reader.Read_Checker(self.cam.map[check_x][check_y])
       temp = self.check_reader.Checker_Error(chars)
-      result.extend(char[:8] + temp)
-    return result
+      if temp:
+        self.cam.img = Draw.DrawFromMap(self.cam.img, char)
+    #   result.extend(char[:8] + temp)
+    # return result
 
   def Run(self, input: list) -> None:
     self.cam.img_id += 1
@@ -123,6 +128,7 @@ class Map:
     self.Re_Infor(chars, input)
 
     if self.Active() and self.cam.img_id % 10 == 0:
-      return self.Active_True
+      self.Active_True
+      return 
     self.Active_False
-    return []
+    return
