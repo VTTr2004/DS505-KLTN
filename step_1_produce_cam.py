@@ -18,11 +18,16 @@ def send_file_to_kafka(file_path, topic, port):
     producer = KafkaProducer(bootstrap_servers=f'localhost:{port}')
     cap = cv2.VideoCapture(file_path)
     cam = file_path.split("\\")[-1].split(".")[0]
+    i = 0
     while cap.isOpened():
+        if i <= 600:
+            i += 1
+            continue
+        i = 0
+
         ret, frame = cap.read()
         if not ret:
             return
-
         _, buffer = cv2.imencode('.jpg', frame)
         data = {
             "cam" : cam,
