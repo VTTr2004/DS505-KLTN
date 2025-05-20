@@ -47,7 +47,6 @@ class Draw:
 
         cv2.rectangle(img, (box[0], box[1]), (box[2], box[3]), color = Draw.color.get(cls_id, (0, 255, 0)), thickness=2)
         cv2.line(img, char[4:6], char[8:10], (255, 255, 255), 3)
-        cv2.putText(img, name, (box[0], box[1] - 10),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        cv2.putText(img, name, (box[0], box[1] - 10),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
         return img

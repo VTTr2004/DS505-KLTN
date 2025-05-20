@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import math
+import cv2
 import pickle
 from scipy.optimize import linear_sum_assignment
 from worker.character import Character
@@ -18,14 +18,14 @@ class Map:
   }
 
   def __init__(self) -> None:
-    self.map_path = None
+    self.name = None
     self.check_reader = Checker()
     self.char_reader = Character()
     self.cam = None
 
-  def Load_Map(self, map_path: str) -> None:
-    self.map_path = map_path
-    with open(map_path, 'r') as file:
+  def Load_Map(self, cam: str) -> None:
+    self.name = cam
+    with open(f"./infor/map/{cam}.pkl", 'r') as file:
       self.cam = pickle.load(file)
 
   def Active(self, num_img = 1800) -> None: # Khoảng 60s
@@ -34,7 +34,7 @@ class Map:
     False
 
   def Save_Map(self) -> None:
-    with open(self.map_path, 'wb') as file:
+    with open(f"./infor/map/{self.name}.pkl", 'wb') as file:
       pickle.dump(self.cam, file)
 
 
@@ -102,16 +102,14 @@ class Map:
 
   def Active_True(self):
     chars = np.array(self.cam.chars)
-    # chars = chars[chars[:, -1] == 1]
-    # result = []
+    img = cv2.imread(f"./infor/img/{self.name}.jpg")
     for char in chars:
       check_x, check_y = self.Get_ID_Check
       self.check_reader.Read_Checker(self.cam.map[check_x][check_y])
       temp = self.check_reader.Checker_Error(chars)
       if temp:
-        self.cam.img = Draw.DrawFromMap(self.cam.img, char)
-    #   result.extend(char[:8] + temp)
-    # return result
+        img = Draw.DrawFromMap(img, char)
+    cv2.imwrite(f"./infor/img/{self.name}.jpg", img)
 
   def Run(self, input: list) -> None:
     self.cam.img_id += 1
