@@ -3,6 +3,7 @@ import tkinter as tk
 from pages.page1 import Page1
 from pages.page2 import Page2
 from pages.page3 import Page3
+import time
 
 class MainApp(tk.Tk):
     def __init__(self):
@@ -34,14 +35,20 @@ class MainApp(tk.Tk):
         right_frame = tk.Frame(self, bg="white")
         right_frame.grid(row=0, column=1, sticky="nsew")
 
-        # Hiển thị ảnh
-        image = Image.open("./MaiChiTho_cam_1_7.jpg")
+        self.img_label = tk.Label(right_frame)
+        self.img_label.pack(pady=10)
+        # img_label = tk.Label(right_frame, image=self.tk_image)
+        # img_label.pack(pady=0)
+
+        self.update_img(right_frame)
+
+    def update_img(self, right_frame):
+        image = Image.open("./infor/img/cam-1.jpg")
         # image = image.resize((700, 500))
         self.tk_image = ImageTk.PhotoImage(image)
-        img_label = tk.Label(right_frame, image=self.tk_image)
-        img_label.pack(pady=10)
-        img_label = tk.Label(right_frame, image=self.tk_image)
-        img_label.pack(pady=0)
+        self.img_label.config(image=self.tk_image)
+        self.after(1000, lambda: self.update_img(right_frame))
+
 
     def init_menu(self):
         menubar = tk.Menu(self)
