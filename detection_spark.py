@@ -40,7 +40,7 @@ _model = None
 def load_model():
     global _model
     if _model is None:
-        _model = YOLO('./model/final.py')
+        _model = YOLO('./model/model_ver4.pt')
     return _model
 
 @pandas_udf(StringType())
@@ -89,8 +89,8 @@ def Run(json_series: pd.Series) -> pd.Series:
 #---------------------------------------------------------#
 
 parsed_df = parsed_df.withColumn('out_put', Run(col('json'))) \
-    .select(col('out_put').alias('value'))
-query = parsed_df.writeStream \
+    .selectExpr("CAST(out_put AS STRING) as value")
+query = parsed_df.select(col('value')).writeStream \
     .format("kafka") \
     .option("kafka.bootstrap.servers", "192.168.1.240:9092") \
     .option("topic", "check_error") \

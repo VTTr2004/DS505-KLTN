@@ -1,7 +1,7 @@
 from kafka import KafkaConsumer
 import json
 
-from manager import Manager
+from worker.manager import Manager
 
 consumer = KafkaConsumer(
     'manager',

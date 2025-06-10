@@ -56,10 +56,9 @@ class Map:
     old_ind, new_ind = linear_sum_assignment(matrix_padded)
     result = [[], []]
     for i, j in zip(old_ind, new_ind):
-      if i < size_old and j < size_new and Map.Cal_Matrix([char_old[i]], [char_new[j]]) < 200:
+      if i < size_old and j < size_new and Map.Cal_Matrix([char_old[i]], [char_new[j]]) < 25:
         result[0].append(i)
         result[1].append(j)
-
     return result[0], result[1]
 
   def Re_Infor(self, char_old: list, char_new: list) -> None:
@@ -69,14 +68,13 @@ class Map:
     char_old = np.array(char_old)
     char_new = np.array(char_new)
     old_id, new_id = self.Re_ID(char_old[:, :8], char_new[:, :8])
-
     # Fix speed
     char_old[old_id, 8: 12] = char_new[new_id, 4: 8] - char_old[old_id, 4: 8]
     # Fix value
     char_old[old_id, :8] = char_new[new_id, :8]
-
     # add lost
     char_old[[i not in old_id for i in range(len(char_old))], 12] += 1
+    char_old[[i in old_id for i in range(len(char_old))], 12] = 0
 
     # add new char
     char_new = char_new[[i not in new_id for i in range(len(char_new))]]
@@ -84,14 +82,12 @@ class Map:
 
     self.cam.chars = char_old.tolist()
 
-  def Run(self, input: list) -> None:
+  def Run(self, img , input: list, draw = 'None') -> None:
     self.cam.img_id += 1
     if len(input) == 0:
       return
-    
     input = [Character.New_Char(ip) for ip in input]
     self.Re_Infor(self.cam.chars, input)
-
     for id in range(len(self.cam.chars)):
       self.char_reader.Read_Char(self.cam.chars[id])
       check_x, check_y = self.char_reader.Get_ID_Check()
@@ -100,4 +96,8 @@ class Map:
       self.check_reader.Read_Checker(self.cam.map[check_x][check_y])
       self.cam.chars[id] = self.check_reader.Run(self.cam.img_id, self.cam.chars[id])
       self.cam.map[check_x][check_y] = self.check_reader.Save()
+    
+    if draw == 'All':
+      img = Draw().DrawFromMap(img, self.cam.chars)
+      cv2.imwrite(f".\infor\img\{self.name}.jpg", img)
     return

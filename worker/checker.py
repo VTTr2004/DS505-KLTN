@@ -67,11 +67,10 @@ class Checker:
         if Checker.Check_Direct(self.angles[0], char_angle):
           self.active = True
           temp = self.img_ids[-1] if len(self.img_ids) > 0 else 0
-          if img_id - temp >= 5:
+          if img_id - temp <= 5:
             # Trường hợp xe đi ngược chiều
             self.active = False
             self.img_ids.pop()
-            
             self.img_ids.pop()
             self.angles.pop()
             self.vehicle.pop()
@@ -82,7 +81,6 @@ class Checker:
     if self.active:
       for i in range(len(self.vehicle)):
         self.vehicle[i] = Checker.Define_Veh(self.vehicle[i])
-
     if len(self.img_ids) == 0 and img_id >= 120:
       # Trường hợp đường chỉ có 1 hướng
       self.active = True
