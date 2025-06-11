@@ -19,21 +19,20 @@ def main(topic = 'check_error', port = 9092):
         value_deserializer=lambda m: m.decode('utf-8')
     )
     print('chay xong topic')
-    print(consumer)
     for message in consumer:
         try:
-            print('ksdljf_1')
             raw = message.value.decode('utf-8') 
             data = json.loads(raw)
-            print('ksdljf')
             if data.get('error', True):
                 cam = data['cam']
                 print(cam)
                 img = base64.b64decode(data['img'])
                 img = np.frombuffer(img, np.uint8)
                 img = cv2.imdecode(img, cv2.IMREAD_COLOR)
-                cv2.imwrite(f"./infor/img/{cam}.jpg", img)
-                result = processer.Add_HSV(data['result'])
+                # cv2.imwrite(f"./infor/img/{cam}.jpg", img)
+                cls_list = data['cls_list']
+                box_list = data['box_list']
+                result = processer.Add_HSV(img, cls_list, box_list)
                 manager.run(img, cam, result, 'All')
         except:
             print('lỗi')
