@@ -20,14 +20,14 @@ def send_file_to_kafka(file_path, topic, port):
     cam = file_path.split("\\")[-1].split(".")[0]
     i = 0
     while cap.isOpened():
-        if i <= 600:
-            i += 1
-            continue
-        i = 0
-
+    
         ret, frame = cap.read()
         if not ret:
             return
+        if i <= 15:
+            i += 1
+            continue
+        i = 0
         _, buffer = cv2.imencode('.jpg', frame)
         data = {
             "cam" : cam,
