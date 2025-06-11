@@ -40,7 +40,7 @@ _model = None
 def load_model():
     global _model
     if _model is None:
-        _model = YOLO('./model/model_ver4.pt')
+        _model = YOLO('model/model_ver3.pt')
     return _model
 
 @pandas_udf(StringType())
@@ -72,12 +72,15 @@ def Run(json_series: pd.Series) -> pd.Series:
 
         for cam, img, pred in zip(cam_list, img_list, preds):
             success, enc_img = cv2.imencode('.jpg', img)
+            cls_list = pred.boxes.cls.tolist()
+            box_list = pred.boxes.xywh.tolist()
             if success:
                 img_b64 = base64.b64encode(enc_img).decode('utf-8')
                 result_list.append(json.dumps({
                     'cam': cam,
                     'img': img_b64,
-                    'result': pred.names  # hoặc pred.tojson()
+                    'cls_list': cls_list,
+                    'box_list': box_list
                 }))
             else:
                 result_list.append(json.dumps({
