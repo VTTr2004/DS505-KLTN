@@ -28,17 +28,13 @@ class Process:
         return temp
 
     @staticmethod
-    def Add_HSV(imgs, results) -> list:
+    def Add_HSV(img, cls_list, box_list) -> list:
         pro_results = []
-        
-        for i in range(len(imgs)):
-            cls_id = results[i].boxes.cls.cpu().numpy()
-            boxes = results[i].boxes.xywh.cpu().numpy()
-            img_hsv = cv2.cvtColor(imgs[i], cv2.COLOR_BGR2HSV)
-            temp = [
-                list(map(float, [cls*100000] + list(map(float, Process.Extract_HSV(img_hsv, box))) + list(map(float, box)))) 
-                for cls, box in zip(cls_id, boxes)
-            ]
-            pro_results.append(temp)
+        img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        temp = [
+            list(map(float, [cls*100000] + list(map(float, Process.Extract_HSV(img_hsv, box))) + list(map(float, box)))) 
+            for cls, box in zip(cls_list, box_list)
+        ]
+        pro_results.append(temp)
 
         return pro_results

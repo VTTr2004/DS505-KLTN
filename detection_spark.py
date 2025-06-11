@@ -99,27 +99,3 @@ query = parsed_df.select(col('value')).writeStream \
     .trigger(processingTime="2 seconds") \
     .start()
 query.awaitTermination()
-
-# def process_batch(df, epoch_id):
-#     from pyspark.sql.functions import expr
-
-#     # Gom 5 ảnh mỗi lần
-#     batched_df = df.repartition(1)\
-#                    .withColumn("row_id", expr("monotonically_increasing_id()")) \
-#                    .withColumn("group_id", (col("row_id") / 5).cast("int")) \
-#                    .groupBy("group_id") \
-#                    .agg(f.collect_list("data").alias("batch_data")) \
-#                    .select(to_json(col("batch_data")).alias("value"))
-
-#     # Ghi vào Kafka
-#     batched_df.write \
-#         .format("kafka") \
-#         .option("kafka.bootstrap.servers", "localhost:9092") \
-#         .option("topic", "check_error") \
-#         .save()
-
-# query = parsed_df.writeStream \
-#     .foreachBatch(process_batch) \
-#     .option("checkpointLocation", "./checkpoints/check_error") \
-#     .start()
-# query.awaitTermination()
