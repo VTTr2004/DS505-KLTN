@@ -1,0 +1,7 @@
+numpy
+pandas
+ultralytics
+scipy
+pyspark
+pyarrow
+kafka-python
