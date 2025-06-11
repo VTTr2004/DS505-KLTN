@@ -2,3 +2,7 @@ checkpoints/
 cam_test/
 cam-1.mp4
 cam-2.mp4
+infor/
+test.ipynb
+test.py
+tester_worker.ipynb
