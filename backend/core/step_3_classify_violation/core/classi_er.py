@@ -5,19 +5,22 @@ import torch.nn.functional as F
 class TrafficCNN(nn.Module):
     def __init__(self):
         super(TrafficCNN, self).__init__()
-        self.conv1 = nn.Conv2d(1, 16, kernel_size=5, stride=1)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1)
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=5, stride=1)     # (16, 30, 30)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1)    # (32, 28, 28)
+        self.pool  = nn.MaxPool2d(kernel_size=2, stride=2)         # (32, 14, 14)
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3)
         self.flatten_dim = 6*6*32
         self.fc1 = nn.Linear(self.flatten_dim, 128)
+        self.dropout = nn.Dropout(0.5)
         self.fc2 = nn.Linear(128, 64)
-        self.fc3 = nn.Linear(64, 1)  # Nhị phân
+        self.fc3 = nn.Linear(64, 1)  # Hoặc số class tùy nhiệm vụ
 
     def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))  # (16, 15, 15)
-        x = self.pool(F.relu(self.conv2(x)))  # (32, 6, 6)
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
+        x = self.dropout(x)
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x

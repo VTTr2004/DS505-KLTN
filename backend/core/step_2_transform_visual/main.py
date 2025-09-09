@@ -1,4 +1,4 @@
-from core.visualler import Visualler
+from .core.visualler import Visualler
 
 class Step2Visual:
     def __init__(self, num_obj, size):

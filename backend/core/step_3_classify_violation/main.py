@@ -1,4 +1,4 @@
-from core.classi_er import ClassiEr
+from .core.classi_er import ClassiEr
 
 class Step3Classi:
     def __init__(self, model_path):

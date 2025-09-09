@@ -66,8 +66,8 @@ def tracking(cam_path, objs_new):
 
     data_cam['id_frame'] += 1
     data_cam['objects'] = update_infor(data_cam['objects'], objs_new)
-    xs = [obj[4] for obj in objs_new]
-    ys = [obj[5] for obj in objs_new]
+    xs = np.array([obj[-4] for obj in objs_new]).astype(int)
+    ys = np.array([obj[-3] for obj in objs_new]).astype(int)
     data_cam['street_visual'][np.array(xs), np.array(ys)] = 50
 
     return data_cam
